@@ -33,12 +33,7 @@ export default defineType({
       type: 'array',
       of: [{ type: 'image', options: { hotspot: true } }]
     }),
-    defineField({
-      name: 'stock',
-      title: 'Stock disponible',
-      type: 'number',
-      validation: (Rule) => Rule.required().min(0),
-    }),
+
     defineField({
       name: 'description',
       title: 'Descripción',

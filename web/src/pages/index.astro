@@ -41,8 +41,7 @@ const categories = [
   { name: "Nuevos", path: "/nuevos" },
   { name: "Populares", path: "/populares" },
   { name: "Portallaves", path: "/portallaves" },
-  { name: "Portarretratos", path: "/portarretratos" },
-  { name: "Todos los Productos", path: "/todos-productos" }
+  { name: "Portarretratos", path: "/portarretratos" }
 ];
 ---
 
@@ -68,6 +67,18 @@ const categories = [
       </section>
 
       <div class="gallery-header">
+        <h2 class="font-serif">Explorar por Categorías</h2>
+      </div>
+
+      <div class="categories-grid">
+        {categories.map(cat => (
+          <a href={cat.path} class="category-card font-serif">
+            {cat.name}
+          </a>
+        ))}
+      </div>
+
+      <div class="gallery-header" style="margin-top: 100px;">
         <h2 class="font-serif">Galería de Obras</h2>
       </div>
 
@@ -81,18 +92,6 @@ const categories = [
         ) : (
           <p class="no-products">No hay obras disponibles por el momento.</p>
         )}
-      </div>
-
-      <div class="gallery-header" style="margin-top: 100px;">
-        <h2 class="font-serif">Explorar por Categorías</h2>
-      </div>
-
-      <div class="categories-grid">
-        {categories.map(cat => (
-          <a href={cat.path} class="category-card font-serif">
-            {cat.name}
-          </a>
-        ))}
       </div>
     </main>
 

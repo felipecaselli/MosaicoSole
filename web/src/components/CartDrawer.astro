@@ -75,12 +75,13 @@ const { whatsappNumber } = Astro.props;
     if (btn && !btn.disabled) {
       const id = btn.getAttribute('data-id');
       const name = btn.getAttribute('data-name');
+      const image = btn.getAttribute('data-image');
       
       const existing = cart.find(item => item.id === id);
       if (existing) {
         existing.quantity += 1;
       } else {
-        cart.push({ id, name, quantity: 1 });
+        cart.push({ id, name, image, quantity: 1 });
       }
       saveCart();
       openCart();
@@ -110,8 +111,11 @@ const { whatsappNumber } = Astro.props;
       count += item.quantity;
       return `
         <div class="cart-item">
-          <div>
-            <div class="cart-item-name">${item.quantity}x ${item.name}</div>
+          <div class="cart-item-content">
+            ${item.image ? `<img src="${item.image}" alt="${item.name}" class="cart-item-image">` : ''}
+            <div class="cart-item-info">
+              <div class="cart-item-name">${item.name}</div>
+            </div>
           </div>
           <button class="remove-item-btn" data-id="${item.id}">&times;</button>
         </div>
@@ -128,7 +132,7 @@ const { whatsappNumber } = Astro.props;
     let message = "Hola! Te quería consultar por:\n";
     
     cart.forEach(item => {
-      message += `- ${item.quantity}x ${item.name}\n`;
+      message += `- ${item.name}\n`;
     });
     
     const encodedMessage = encodeURIComponent(message);
@@ -231,6 +235,25 @@ const { whatsappNumber } = Astro.props;
     align-items: center;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--color-border);
+  }
+
+  .cart-item-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .cart-item-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    background: var(--color-border);
+  }
+
+  .cart-item-info {
+    flex: 1;
   }
 
   .cart-item-name {

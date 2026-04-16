@@ -6,18 +6,16 @@ export interface Props {
     _id: string;
     name: string;
     price: number;
-    stock: number;
     description?: string;
     image?: any;
   };
 }
 
 const { product } = Astro.props;
-const isOut = product.stock <= 0;
 const imageUrl = product.image ? urlForImage(product.image).width(600).height(750).url() : '';
 ---
 
-<div class="product-card" class:list={[{ 'is-out-of-stock': isOut }]}>
+<div class="product-card">
   <div class="product-image-wrapper">
     <a href={`/producto/${product._id}`} aria-label={`Ver detalles de ${product.name}`} class="image-link">
       {imageUrl ? (
@@ -26,16 +24,15 @@ const imageUrl = product.image ? urlForImage(product.image).width(600).height(75
         <div class="product-image-placeholder">Sin imagen</div>
       )}
     </a>
-    {isOut && <div class="badge-out">Agotado</div>}
     
     <div class="product-overlay">
       <button 
         class="add-to-cart-btn font-serif" 
-        disabled={isOut}
         data-id={product._id}
         data-name={product.name}
+        data-image={imageUrl}
       >
-        {isOut ? 'Sin stock' : 'Agregar a la Colección'}
+        Agregar a la Colección
       </button>
     </div>
   </div>
@@ -59,9 +56,6 @@ const imageUrl = product.image ? urlForImage(product.image).width(600).height(75
     gap: 16px;
   }
 
-  .product-card.is-out-of-stock {
-    opacity: 0.6;
-  }
   
   .product-image-wrapper {
     position: relative;
@@ -87,7 +81,7 @@ const imageUrl = product.image ? urlForImage(product.image).width(600).height(75
     transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
   
-  .product-card:not(.is-out-of-stock):hover .product-image {
+  .product-card:hover .product-image {
     transform: scale(1.05);
   }
 
@@ -130,7 +124,7 @@ const imageUrl = product.image ? urlForImage(product.image).width(600).height(75
     z-index: 1;
   }
 
-  .product-card:not(.is-out-of-stock):hover .product-overlay {
+  .product-card:hover .product-overlay {
     opacity: 1;
   }
 
@@ -147,7 +141,7 @@ const imageUrl = product.image ? urlForImage(product.image).width(600).height(75
     transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.2s ease, color 0.2s ease;
   }
 
-  .product-card:not(.is-out-of-stock):hover .add-to-cart-btn {
+  .product-card:hover .add-to-cart-btn {
     transform: translateY(0);
   }
 
