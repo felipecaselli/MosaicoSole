@@ -1,0 +1,118 @@
+---
+import { sanityClient } from "sanity:client";
+import Layout from "../layouts/Layout.astro";
+import ProductCard from "../components/ProductCard.astro";
+import CartDrawer from "../components/CartDrawer.astro";
+import { urlForImage } from "../utils/sanity";
+
+// --- BOILERPLATE BASE ---
+// Cambia esto al 'slug' de la tienda que vas a crear (ej. 'mosaicosole')
+const STORE_SLUG = "tu-tienda-slug-aqui";
+
+// --- QUERY DE SANITY ---
+// Solo modificas cómo y qué quieres traer si es necesario.
+const query = `*[_type == "store" && slug.current == $slug][0] {
+  name,
+  whatsappNumber,
+  logo,
+  themeColor,
+  "products": *[_type == "product" && store._ref == ^._id] {
+    _id,
+    name,
+    price,
+    stock,
+    description,
+    image
+  }
+}`;
+const storeData = await sanityClient.fetch(query, { slug: STORE_SLUG });
+---
+
+{storeData ? (
+  <Layout title={`${storeData.name} - Oficial`} description={`Tienda oficial de ${storeData.name}`} themeColor={storeData.themeColor?.hex || '#10B981'}>
+    <header class="store-header">
+      <div class="header-container">
+        {storeData.logo ? (
+          <img src={urlForImage(storeData.logo).height(80).url()} alt={`Logo de ${storeData.name}`} class="store-logo" />
+        ) : (
+          <h1 class="store-title">{storeData.name}</h1>
+        )}
+      </div>
+    </header>
+
+    <main class="store-main">
+      <div class="products-grid">
+        {storeData.products && storeData.products.length > 0 ? (
+          storeData.products.map((product) => (
+            <ProductCard product={product} />
+          ))
+        ) : (
+          <p class="no-products">No hay productos disponibles por el momento.</p>
+        )}
+      </div>
+    </main>
+
+    <CartDrawer whatsappNumber={storeData.whatsappNumber} />
+
+    <style>
+      .store-header {
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-border);
+        padding: 24px 0;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .header-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .store-logo {
+        max-height: 56px;
+        width: auto;
+      }
+
+      .store-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--color-primary);
+      }
+
+      .store-main {
+        max-width: 1200px;
+        margin: 40px auto 80px;
+        padding: 0 24px;
+      }
+
+      .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 24px;
+      }
+      
+      .no-products {
+        grid-column: 1 / -1;
+        text-align: center;
+        color: var(--color-text-muted);
+        padding: 40px;
+        background: var(--color-surface);
+        border-radius: var(--radius);
+        border: 1px dashed var(--color-border);
+      }
+    </style>
+  </Layout>
+) : (
+  <Layout title="Tienda no encontrada">
+    <div style="text-align: center; padding: 100px 20px;">
+      <h1>No se encontró la tienda 😢</h1>
+      <p>Asegúrate de cambiar <strong>STORE_SLUG</strong> en <code>src/pages/index.astro</code> al slug correcto ("{STORE_SLUG}" no existe en tu Sanity Studio).</p>
+    </div>
+  </Layout>
+)}

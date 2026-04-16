@@ -1,0 +1,115 @@
+---
+import { sanityClient } from "sanity:client";
+import Layout from "../../layouts/Layout.astro";
+import ProductCard from "../../components/ProductCard.astro";
+import CartDrawer from "../../components/CartDrawer.astro";
+import { urlForImage } from "../../utils/sanity";
+
+export async function getStaticPaths() {
+  const stores = await sanityClient.fetch(`*[_type == "store"]{ slug }`);
+  return stores.map((store) => ({
+    params: { storeSlug: store.slug.current },
+  }));
+}
+
+const { storeSlug } = Astro.params;
+
+const query = `*[_type == "store" && slug.current == $slug][0] {
+  name,
+  whatsappNumber,
+  logo,
+  "products": *[_type == "product" && store._ref == ^._id] {
+    _id,
+    name,
+    price,
+    stock,
+    description,
+    image
+  }
+}`;
+
+const storeData = await sanityClient.fetch(query, { slug: storeSlug });
+
+if (!storeData) {
+  return Astro.redirect('/404');
+}
+
+const logoUrl = storeData.logo ? urlForImage(storeData.logo).height(80).url() : null;
+---
+
+<Layout title={`${storeData.name} - Store Factory`} description={`Tienda oficial de ${storeData.name}`}>
+  <header class="store-header">
+    <div class="header-container">
+      {logoUrl ? (
+        <img src={logoUrl} alt={`Logo de ${storeData.name}`} class="store-logo" />
+      ) : (
+        <h1 class="store-title">{storeData.name}</h1>
+      )}
+    </div>
+  </header>
+
+  <main class="store-main">
+    <div class="products-grid">
+      {storeData.products && storeData.products.length > 0 ? (
+        storeData.products.map((product) => (
+          <ProductCard product={product} />
+        ))
+      ) : (
+        <p class="no-products">No hay productos disponibles por el momento.</p>
+      )}
+    </div>
+  </main>
+
+  <CartDrawer whatsappNumber={storeData.whatsappNumber} />
+</Layout>
+
+<style>
+  .store-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    padding: 24px 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+  }
+
+  .store-logo {
+    max-height: 48px;
+    width: auto;
+  }
+
+  .store-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .store-main {
+    max-width: 1200px;
+    margin: 40px auto 80px;
+    padding: 0 24px;
+  }
+
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px;
+  }
+  
+  .no-products {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--color-text-muted);
+    padding: 40px;
+    background: var(--color-surface);
+    border-radius: var(--radius);
+    border: 1px dashed var(--color-border);
+  }
+</style>

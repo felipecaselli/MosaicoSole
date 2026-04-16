@@ -1,0 +1,170 @@
+---
+import { urlForImage } from '../utils/sanity';
+
+export interface Props {
+  product: {
+    _id: string;
+    name: string;
+    price: number;
+    stock: number;
+    description?: string;
+    image?: any;
+  };
+}
+
+const { product } = Astro.props;
+const isOut = product.stock <= 0;
+const imageUrl = product.image ? urlForImage(product.image).width(400).height(400).url() : '';
+---
+
+<div class="product-card" class:list={[{ 'is-out-of-stock': isOut }]}>
+  <div class="product-image-wrapper">
+    {imageUrl ? (
+      <img src={imageUrl} alt={product.name} loading="lazy" class="product-image" />
+    ) : (
+      <div class="product-image-placeholder">Sin imagen</div>
+    )}
+    {isOut && <div class="badge-out">Agotado</div>}
+  </div>
+  
+  <div class="product-info">
+    <h3 class="product-name">{product.name}</h3>
+    <p class="product-price">${product.price.toLocaleString('es-AR')}</p>
+    {product.description && <p class="product-desc">{product.description}</p>}
+    <p class="product-stock">Stock: {product.stock}</p>
+    
+    <button 
+      class="add-to-cart-btn" 
+      disabled={isOut}
+      data-id={product._id}
+      data-name={product.name}
+      data-price={product.price}
+    >
+      {isOut ? 'Sin stock' : 'Agregar al carrito'}
+    </button>
+  </div>
+</div>
+
+<style>
+  .product-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .product-card.is-out-of-stock {
+    opacity: 0.7;
+  }
+  
+  .product-card.is-out-of-stock:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .product-image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: var(--color-bg);
+    overflow: hidden;
+  }
+
+  .product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  
+  .product-card:not(.is-out-of-stock):hover .product-image {
+    transform: scale(1.05);
+  }
+
+  .product-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-muted);
+  }
+
+  .badge-out {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #EF4444;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .product-info {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .product-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .product-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 8px;
+  }
+
+  .product-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin-bottom: 12px;
+    line-height: 1.4;
+    flex-grow: 1;
+  }
+
+  .product-stock {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-bottom: 16px;
+  }
+
+  .add-to-cart-btn {
+    width: 100%;
+    background: var(--color-text);
+    color: var(--color-surface);
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background 0.2s ease;
+  }
+
+  .add-to-cart-btn:not(:disabled):hover {
+    background: var(--color-primary);
+  }
+
+  .add-to-cart-btn:disabled {
+    background: var(--color-border);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+  }
+</style>
