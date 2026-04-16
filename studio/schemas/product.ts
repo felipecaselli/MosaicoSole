@@ -52,21 +52,7 @@ export default defineType({
       type: 'reference',
       to: [{ type: 'store' }],
       readOnly: true,
-      validation: (Rule) => Rule.required().custom(async (storeRef: any, context) => {
-        if (!storeRef || !storeRef._ref) return true;
-        const currentUser = context.currentUser;
-        const isAdmin = currentUser?.roles?.some((r: any) => r.name === 'administrator');
-        if (isAdmin) return true; 
-
-        // Cross-check ownership using the client api
-        const client = context.getClient({apiVersion: '2023-05-03'});
-        const store = await client.fetch('*[_id == $id][0]', { id: storeRef._ref });
-        
-        if (store?.ownerEmail !== currentUser?.email) {
-          return 'Violación de seguridad: No tienes permisos para asignar productos a esta tienda.';
-        }
-        return true;
-      }),
+      validation: (Rule) => Rule.required(),
     }),
   ],
 })

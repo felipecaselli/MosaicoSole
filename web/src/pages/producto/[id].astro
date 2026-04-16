@@ -1,0 +1,274 @@
+---
+import { sanityClient } from "sanity:client";
+import Layout from "../../layouts/Layout.astro";
+import CartDrawer from "../../components/CartDrawer.astro";
+import { urlForImage } from "../../utils/sanity";
+
+export async function getStaticPaths() {
+  // Ajustamos el slug de la tienda a mano para generar estáticamente todas las páginas de sus productos
+  const STORE_SLUG = "mosaicosole";
+  
+  const query = `*[_type == "store" && slug.current == $slug][0] {
+    whatsappNumber,
+    themeColor,
+    "products": *[_type == "product" && store._ref == ^._id] {
+      _id,
+      name,
+      price,
+      stock,
+      description,
+      image
+    }
+  }`;
+  
+  const storeData = await sanityClient.fetch(query, { slug: STORE_SLUG });
+  
+  if (!storeData || !storeData.products) return [];
+
+  // Mapeamos los productos devueltos y generamos una ruta /producto/:id
+  return storeData.products.map((product) => ({
+    params: { id: product._id },
+    props: { 
+      product, 
+      whatsappNumber: storeData.whatsappNumber, 
+      themeColor: storeData.themeColor?.hex || '#1C1C1C' 
+    },
+  }));
+}
+
+const { product, whatsappNumber, themeColor } = Astro.props;
+const isOut = product.stock <= 0;
+const imageUrl = product.image ? urlForImage(product.image).width(1200).height(1500).url() : '';
+---
+
+<Layout title={`${product.name} | MosaicoSole`} description={product.description || `Adquiere ${product.name} en MosaicoSole`} themeColor={themeColor}>
+  
+  <header class="detail-header">
+    <a href="/" class="back-link font-serif">
+      <span class="arrow">&larr;</span> Volver a la Galería
+    </a>
+  </header>
+
+  <main class="product-detail-main fade-in">
+    <div class="product-container">
+      
+      <!-- Imagen de la obra -->
+      <div class="product-gallery">
+        <div class="main-image-wrapper">
+          {imageUrl ? (
+            <img src={imageUrl} alt={product.name} class="main-image" />
+          ) : (
+            <div class="no-image">Obra sin fotografía</div>
+          )}
+        </div>
+      </div>
+
+      <!-- Detalles e información de compra -->
+      <div class="product-info">
+        <h1 class="product-title font-serif">{product.name}</h1>
+        <p class="product-price">${product.price.toLocaleString('es-AR')}</p>
+        
+        <div class="divider"></div>
+
+        <div class="product-description">
+          <p>{product.description || "Una obra con la atención al milímetro que caracteriza a nuestro arte en teselas."}</p>
+        </div>
+
+        <div class="purchase-actions">
+          <button 
+            class="add-to-cart-btn font-serif" 
+            disabled={isOut}
+            data-id={product._id}
+            data-name={product.name}
+            data-price={product.price}
+          >
+            {isOut ? 'Obra sin stock actualmente' : 'Agregar a mi Colección'}
+          </button>
+          {isOut && <p class="stock-warning">Lamentablemente ya se ha adquirido esta pieza y no hay más stock por el momento.</p>}
+        </div>
+
+        <!-- Elementos adicionales de confianza artìstica -->
+        <ul class="art-features">
+          <li>✨ Elaborado artesanalmente</li>
+          <li>🎭 Pieza exclusiva y única</li>
+          <li>📦 Envío y embalaje cuidado</li>
+        </ul>
+      </div>
+
+    </div>
+  </main>
+
+  <CartDrawer whatsappNumber={whatsappNumber || "5491112345678"} />
+
+  <style>
+    .detail-header {
+      padding: 40px 24px 0;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--color-text-muted);
+      font-size: 1.125rem;
+      transition: color 0.2s ease;
+    }
+
+    .back-link:hover {
+      color: var(--color-text);
+    }
+
+    .arrow {
+      margin-right: 8px;
+      transition: transform 0.2s ease;
+    }
+
+    .back-link:hover .arrow {
+      transform: translateX(-4px);
+    }
+
+    .product-detail-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 120px;
+    }
+
+    .product-container {
+      display: flex;
+      flex-direction: column;
+      gap: 60px;
+    }
+
+    @media (min-width: 900px) {
+      .product-container {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+    }
+
+    .product-gallery {
+      flex: 1;
+      width: 100%;
+    }
+
+    .main-image-wrapper {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      background: var(--color-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .main-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .no-image {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-muted);
+      font-style: italic;
+      font-size: 1.125rem;
+    }
+
+    .product-info {
+      flex: 1;
+      width: 100%;
+      max-width: 540px;
+    }
+
+    .product-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.1;
+      margin-bottom: 16px;
+      letter-spacing: -0.01em;
+    }
+
+    .product-price {
+      font-size: 1.5rem;
+      color: var(--color-text-muted);
+    }
+
+    .divider {
+      height: 1px;
+      width: 60px;
+      background: var(--color-accent);
+      margin: 32px 0;
+    }
+
+    .product-description {
+      font-size: 1.0625rem;
+      color: var(--color-text);
+      line-height: 1.8;
+      margin-bottom: 40px;
+    }
+
+    .purchase-actions {
+      margin-bottom: 40px;
+    }
+
+    .add-to-cart-btn {
+      width: 100%;
+      background: var(--color-text);
+      color: var(--color-surface);
+      border: none;
+      padding: 20px;
+      border-radius: var(--radius);
+      font-size: 1.125rem;
+      letter-spacing: 0.02em;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .add-to-cart-btn:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      background: var(--color-accent);
+      color: white;
+    }
+
+    .add-to-cart-btn:disabled {
+      background: var(--color-border);
+      color: var(--color-text-muted);
+      cursor: not-allowed;
+    }
+
+    .stock-warning {
+      color: #b91c1c;
+      font-size: 0.875rem;
+      margin-top: 12px;
+      font-style: italic;
+    }
+
+    .art-features {
+      list-style: none;
+      border-top: 1px solid var(--color-border);
+      padding-top: 32px;
+    }
+
+    .art-features li {
+      font-size: 0.9375rem;
+      color: var(--color-text-muted);
+      margin-bottom: 12px;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.8s ease-out forwards;
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</Layout>

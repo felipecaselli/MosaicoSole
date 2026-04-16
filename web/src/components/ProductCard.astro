@@ -14,76 +14,79 @@ export interface Props {
 
 const { product } = Astro.props;
 const isOut = product.stock <= 0;
-const imageUrl = product.image ? urlForImage(product.image).width(400).height(400).url() : '';
+const imageUrl = product.image ? urlForImage(product.image).width(600).height(750).url() : '';
 ---
 
 <div class="product-card" class:list={[{ 'is-out-of-stock': isOut }]}>
   <div class="product-image-wrapper">
-    {imageUrl ? (
-      <img src={imageUrl} alt={product.name} loading="lazy" class="product-image" />
-    ) : (
-      <div class="product-image-placeholder">Sin imagen</div>
-    )}
+    <a href={`/producto/${product._id}`} aria-label={`Ver detalles de ${product.name}`} class="image-link">
+      {imageUrl ? (
+        <img src={imageUrl} alt={product.name} loading="lazy" class="product-image" />
+      ) : (
+        <div class="product-image-placeholder">Sin imagen</div>
+      )}
+    </a>
     {isOut && <div class="badge-out">Agotado</div>}
+    
+    <div class="product-overlay">
+      <button 
+        class="add-to-cart-btn font-serif" 
+        disabled={isOut}
+        data-id={product._id}
+        data-name={product.name}
+        data-price={product.price}
+      >
+        {isOut ? 'Sin stock' : 'Agregar a la Colección'}
+      </button>
+    </div>
   </div>
   
   <div class="product-info">
-    <h3 class="product-name">{product.name}</h3>
+    <h3 class="product-name font-serif">
+      <a href={`/producto/${product._id}`}>{product.name}</a>
+    </h3>
     <p class="product-price">${product.price.toLocaleString('es-AR')}</p>
     {product.description && <p class="product-desc">{product.description}</p>}
-    <p class="product-stock">Stock: {product.stock}</p>
-    
-    <button 
-      class="add-to-cart-btn" 
-      disabled={isOut}
-      data-id={product._id}
-      data-name={product.name}
-      data-price={product.price}
-    >
-      {isOut ? 'Sin stock' : 'Agregar al carrito'}
-    </button>
   </div>
 </div>
 
 <style>
   .product-card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
+    background: transparent;
+    border: none;
     overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     flex-direction: column;
     height: 100%;
+    gap: 16px;
   }
 
-  .product-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-  }
-  
   .product-card.is-out-of-stock {
-    opacity: 0.7;
+    opacity: 0.6;
   }
   
-  .product-card.is-out-of-stock:hover {
-    transform: none;
-    box-shadow: none;
-  }
-
   .product-image-wrapper {
     position: relative;
     width: 100%;
-    aspect-ratio: 1 / 1;
-    background: var(--color-bg);
+    /* Vertical aspect ratio for art feel */
+    aspect-ratio: 4 / 5;
+    background: var(--color-border);
     overflow: hidden;
+    border-radius: var(--radius);
+  }
+
+  .image-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+    text-decoration: none;
   }
 
   .product-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
   
   .product-card:not(.is-out-of-stock):hover .product-image {
@@ -97,74 +100,98 @@ const imageUrl = product.image ? urlForImage(product.image).width(400).height(40
     align-items: center;
     justify-content: center;
     color: var(--color-text-muted);
+    font-style: italic;
   }
 
   .badge-out {
     position: absolute;
     top: 12px;
     right: 12px;
-    background: #EF4444;
-    color: white;
+    background: var(--color-text);
+    color: var(--color-surface);
     font-size: 0.75rem;
-    font-weight: 600;
-    padding: 4px 8px;
+    font-weight: 500;
+    padding: 6px 12px;
     border-radius: 4px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    z-index: 2;
   }
 
-  .product-info {
-    padding: 16px;
+  /* Overlay that slides up */
+  .product-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.15);
     display: flex;
-    flex-direction: column;
-    flex-grow: 1;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
   }
 
-  .product-name {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-
-  .product-price {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--color-primary);
-    margin-bottom: 8px;
-  }
-
-  .product-desc {
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-    margin-bottom: 12px;
-    line-height: 1.4;
-    flex-grow: 1;
-  }
-
-  .product-stock {
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-    margin-bottom: 16px;
+  .product-card:not(.is-out-of-stock):hover .product-overlay {
+    opacity: 1;
   }
 
   .add-to-cart-btn {
     width: 100%;
-    background: var(--color-text);
-    color: var(--color-surface);
+    background: var(--color-surface);
+    color: var(--color-text);
     border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: background 0.2s ease;
+    padding: 14px;
+    border-radius: var(--radius);
+    font-size: 1.0625rem;
+    cursor: pointer;
+    transform: translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), background 0.2s ease, color 0.2s ease;
+  }
+
+  .product-card:not(.is-out-of-stock):hover .add-to-cart-btn {
+    transform: translateY(0);
   }
 
   .add-to-cart-btn:not(:disabled):hover {
-    background: var(--color-primary);
+    background: var(--color-accent);
+    color: white;
   }
 
   .add-to-cart-btn:disabled {
     background: var(--color-border);
     color: var(--color-text-muted);
     cursor: not-allowed;
+  }
+
+  .product-info {
+    display: flex;
+    flex-direction: column;
+    padding: 0 4px; /* Slight indent */
+  }
+
+  .product-name {
+    font-size: 1.375rem;
+    color: var(--color-text);
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+
+  .product-price {
+    font-size: 1.0625rem;
+    font-weight: 400;
+    color: var(--color-text-muted);
+  }
+
+  .product-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    margin-top: 8px;
+    line-height: 1.5;
+    /* Optional clamp to keep grid somewhat uniform if we have very long descriptions */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;  
+    overflow: hidden;
   }
 </style>

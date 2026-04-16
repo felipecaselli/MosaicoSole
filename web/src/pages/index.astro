@@ -7,7 +7,7 @@ import { urlForImage } from "../utils/sanity";
 
 // --- BOILERPLATE BASE ---
 // Cambia esto al 'slug' de la tienda que vas a crear (ej. 'mosaicosole')
-const STORE_SLUG = "tu-tienda-slug-aqui";
+const STORE_SLUG = "mosaicosole";
 
 // --- QUERY DE SANITY ---
 // Solo modificas cómo y qué quieres traer si es necesario.
@@ -29,90 +29,207 @@ const storeData = await sanityClient.fetch(query, { slug: STORE_SLUG });
 ---
 
 {storeData ? (
-  <Layout title={`${storeData.name} - Oficial`} description={`Tienda oficial de ${storeData.name}`} themeColor={storeData.themeColor?.hex || '#10B981'}>
-    <header class="store-header">
-      <div class="header-container">
-        {storeData.logo ? (
-          <img src={urlForImage(storeData.logo).height(80).url()} alt={`Logo de ${storeData.name}`} class="store-logo" />
-        ) : (
-          <h1 class="store-title">{storeData.name}</h1>
-        )}
+  <Layout title={`${storeData.name} - Galería Oficial`} description={`Arte y creaciones de ${storeData.name}`} themeColor="#1C1C1C">
+    <header class="hero-section">
+      <div class="hero-container fade-in">
+        <h1 class="hero-title font-serif">Arte en cada tesela,<br/>historias en cada diseño.</h1>
+        <p class="hero-subtitle">Descubre piezas únicas elaboradas a mano con pasión y dedicación.</p>
       </div>
     </header>
 
-    <main class="store-main">
+    <main class="store-main fade-in-delayed">
+      
+      <section class="about-artist">
+        <div class="about-image-wrapper">
+          <img src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=600&auto=format&fit=crop" alt="Creación artística" class="artist-image" />
+        </div>
+        <div class="about-text">
+          <h2 class="font-serif">Elaboración Artesanal</h2>
+          <p>Cada mosaico es el resultado de horas de cuidadosa selección, corte y ensamblaje. Nuestra técnica fusiona métodos tradicionales con estéticas contemporáneas para crear piezas de arte que dan vida a cualquier espacio. Creemos en el valor de lo hecho a mano.</p>
+        </div>
+      </section>
+
+      <div class="gallery-header">
+        <h2 class="font-serif">Galería de Obras</h2>
+      </div>
+
       <div class="products-grid">
         {storeData.products && storeData.products.length > 0 ? (
           storeData.products.map((product) => (
-            <ProductCard product={product} />
+            <div class="masonry-item">
+              <ProductCard product={product} />
+            </div>
           ))
         ) : (
-          <p class="no-products">No hay productos disponibles por el momento.</p>
+          <p class="no-products">No hay obras disponibles por el momento.</p>
         )}
       </div>
     </main>
 
-    <CartDrawer whatsappNumber={storeData.whatsappNumber} />
+    <CartDrawer whatsappNumber={storeData.whatsappNumber || "5491112345678"} />
 
     <style>
-      .store-header {
-        background: var(--color-surface);
-        border-bottom: 1px solid var(--color-border);
-        padding: 24px 0;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        box-shadow: var(--shadow-sm);
-      }
-
-      .header-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 24px;
+      .hero-section {
+        min-height: 45vh;
         display: flex;
         align-items: center;
         justify-content: center;
+        text-align: center;
+        padding: 100px 24px 40px;
+        background: var(--color-bg);
       }
 
-      .store-logo {
-        max-height: 56px;
-        width: auto;
+      .hero-container {
+        max-width: 800px;
       }
 
-      .store-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--color-primary);
+      .hero-title {
+        font-size: clamp(2.5rem, 5vw, 4.5rem);
+        color: var(--color-text);
+        line-height: 1.1;
+        margin-bottom: 24px;
+        letter-spacing: -0.02em;
+      }
+
+      .hero-subtitle {
+        font-size: 1.125rem;
+        color: var(--color-text-muted);
+        max-width: 600px;
+        margin: 0 auto;
       }
 
       .store-main {
         max-width: 1200px;
-        margin: 40px auto 80px;
+        margin: 0 auto 100px;
         padding: 0 24px;
       }
 
+      /* About Artist Section */
+      .about-artist {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 48px;
+        margin-bottom: 100px;
+        padding: 40px 0;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      @media (min-width: 768px) {
+        .about-artist {
+          flex-direction: row;
+          justify-content: center;
+          padding: 80px 40px;
+        }
+      }
+
+      .about-image-wrapper {
+        flex: 1;
+        max-width: 400px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .artist-image {
+        width: 100%;
+        max-width: 340px;
+        aspect-ratio: 3/4;
+        object-fit: cover;
+        /* Organic shape */
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        box-shadow: var(--shadow-lg);
+        transition: border-radius 3s ease-in-out;
+      }
+
+      .artist-image:hover {
+        border-radius: 40% 60% 70% 30% / 40% 60% 30% 70%;
+      }
+
+      .about-text {
+        flex: 1;
+        max-width: 500px;
+      }
+
+      .about-text h2 {
+        font-size: 2.25rem;
+        margin-bottom: 16px;
+        color: var(--color-text);
+        letter-spacing: -0.01em;
+      }
+
+      .about-text p {
+        color: var(--color-text-muted);
+        font-size: 1.0625rem;
+        line-height: 1.8;
+      }
+
+      .gallery-header {
+        text-align: center;
+        margin-bottom: 60px;
+      }
+
+      .gallery-header h2 {
+        font-size: 2.5rem;
+        color: var(--color-text);
+        letter-spacing: -0.01em;
+      }
+
+      /* Masonry Grid */
       .products-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 24px;
+        column-count: 1;
+        column-gap: 32px;
+      }
+
+      @media (min-width: 640px) {
+        .products-grid {
+          column-count: 2;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .products-grid {
+          column-count: 3;
+        }
+      }
+
+      .masonry-item {
+        break-inside: avoid;
+        margin-bottom: 32px;
       }
       
       .no-products {
-        grid-column: 1 / -1;
         text-align: center;
         color: var(--color-text-muted);
-        padding: 40px;
-        background: var(--color-surface);
-        border-radius: var(--radius);
-        border: 1px dashed var(--color-border);
+        padding: 80px 20px;
+        font-style: italic;
+      }
+
+      /* Animations */
+      .fade-in {
+        animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .fade-in-delayed {
+        animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      @keyframes fadeIn {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
     </style>
   </Layout>
 ) : (
   <Layout title="Tienda no encontrada">
     <div style="text-align: center; padding: 100px 20px;">
-      <h1>No se encontró la tienda 😢</h1>
-      <p>Asegúrate de cambiar <strong>STORE_SLUG</strong> en <code>src/pages/index.astro</code> al slug correcto ("{STORE_SLUG}" no existe en tu Sanity Studio).</p>
+      <h1 class="font-serif">No se encontró la galería 😢</h1>
+      <p style="margin-top: 20px; color: var(--color-text-muted);">Asegúrate de cambiar <strong>STORE_SLUG</strong> en <code>src/pages/index.astro</code> al slug correcto ("{STORE_SLUG}" no existe en tu Sanity Studio).</p>
     </div>
   </Layout>
 )}

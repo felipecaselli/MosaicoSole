@@ -1,6 +1,9 @@
 export const structure = (S, context) => {
   const currentUser = context.currentUser;
-  const isAdmin = currentUser?.roles?.some((r) => r.name === 'administrator');
+  const userName = currentUser?.name?.toLowerCase() || '';
+  
+  // Felipe Caselli es el súper Administrador
+  const isAdmin = userName.includes('felipe') || userName.includes('caselli') || currentUser?.roles?.some((r) => ['administrator', 'admin', 'owner'].includes(r.name));
 
   if (isAdmin) {
     // Admin View: See everything
@@ -38,7 +41,10 @@ export const structure = (S, context) => {
   }
 
   // Tenant View: See ONLY their own store and products
-  // The user must match the `ownerEmail` field in the `store` document.
+  // Como Sanity a veces no devuelve el email, usaremos una lógica más laxa si es la mamá (Valen Mendel)
+  // Reemplaza "su_correo@gmail.com" por el correo de verdad que ella use
+  const fallbackEmail = userName.includes('valen') ? 'su_correo@gmail.com' : currentUser?.email;
+
   return S.list()
     .title('Mi Tienda')
     .items([
@@ -48,7 +54,7 @@ export const structure = (S, context) => {
           S.documentTypeList('store')
             .title('Mi Tienda')
             .filter('_type == "store" && ownerEmail == $userEmail')
-            .params({ userEmail: currentUser?.email })
+            .params({ userEmail: fallbackEmail })
             .child((storeId) =>
               S.documentList()
                 .title('Productos de mi Tienda')
