@@ -1,0 +1,189 @@
+---
+import { sanityClient } from "sanity:client";
+import Layout from "../layouts/Layout.astro";
+import ProductCard from "../components/ProductCard.astro";
+import CartDrawer from "../components/CartDrawer.astro";
+
+export async function getStaticPaths() {
+  const categorias = [
+    { slug: 'cuadros', name: 'Cuadros' },
+    { slug: 'espejos', name: 'Espejos' },
+    { slug: 'exterior', name: 'Exterior' },
+    { slug: 'fanales', name: 'Fanales' },
+    { slug: 'logos', name: 'Logos' },
+    { slug: 'macetas', name: 'Macetas' },
+    { slug: 'mandalas', name: 'Mandalas' },
+    { slug: 'mesas', name: 'Mesas' },
+    { slug: 'murales', name: 'Murales' },
+    { slug: 'nuevos', name: 'Nuevos' },
+    { slug: 'populares', name: 'Populares' },
+    { slug: 'portallaves', name: 'Portallaves' },
+    { slug: 'portarretratos', name: 'Portarretratos' }
+  ];
+
+  return categorias.map(cat => ({
+    params: { categoria: cat.slug },
+    props: { categoryName: cat.name }
+  }));
+}
+
+const { categoria } = Astro.params;
+const { categoryName } = Astro.props;
+
+// --- QUERY DE SANITY ---
+const STORE_SLUG = "mosaicosole";
+const query = `*[_type == "store" && slug.current == $slug][0] {
+  name,
+  whatsappNumber,
+  themeColor,
+  "products": *[_type == "product" && store._ref == ^._id && category == $categoria] {
+    _id,
+    name,
+    stock,
+    description,
+    image,
+    gallery
+  }
+}`;
+
+const storeData = await sanityClient.fetch(query, { slug: STORE_SLUG, categoria });
+---
+
+<Layout title={`${categoryName} | MosaicoSole`} description={`Descubre nuestra colección de ${categoryName}`} themeColor={storeData?.themeColor?.hex || "#1C1C1C"}>
+  
+  <header class="category-header">
+    <div class="header-content fade-in">
+      <a href="/" class="back-link font-serif">
+        <span class="arrow">&larr;</span> Volver a la Galería
+      </a>
+      <h1 class="font-serif">{categoryName}</h1>
+    </div>
+  </header>
+
+  <main class="store-main fade-in-delayed">
+    <div class="products-grid">
+      {storeData?.products && storeData.products.length > 0 ? (
+        storeData.products.map((product) => (
+          <div class="masonry-item">
+            <ProductCard product={product} />
+          </div>
+        ))
+      ) : (
+        <div class="empty-state">
+          <p class="no-products">
+            Aún no hay obras disponibles en la categoría <strong>{categoryName}</strong>.<br/>
+            ¡Muy pronto agregaremos nuevas creaciones hechas a mano!
+          </p>
+        </div>
+      )}
+    </div>
+  </main>
+
+  <CartDrawer whatsappNumber={storeData?.whatsappNumber || "5491112345678"} />
+
+  <style>
+    .category-header {
+      padding: 60px 24px 40px;
+      text-align: center;
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: 40px;
+    }
+
+    .header-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .header-content h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      color: var(--color-text);
+      line-height: 1.1;
+      margin-top: 24px;
+      letter-spacing: -0.01em;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--color-text-muted);
+      font-size: 1.125rem;
+      transition: color 0.2s ease;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      color: var(--color-text);
+    }
+
+    .arrow {
+      margin-right: 8px;
+      transition: transform 0.2s ease;
+    }
+
+    .back-link:hover .arrow {
+      transform: translateX(-4px);
+    }
+
+    .store-main {
+      max-width: 1200px;
+      margin: 0 auto 100px;
+      padding: 0 24px;
+    }
+
+    .products-grid {
+      column-count: 1;
+      column-gap: 32px;
+    }
+
+    @media (min-width: 640px) {
+      .products-grid {
+        column-count: 2;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .products-grid {
+        column-count: 3;
+      }
+    }
+
+    .masonry-item {
+      break-inside: avoid;
+      margin-bottom: 32px;
+    }
+    
+    .empty-state {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: center;
+    }
+
+    .no-products {
+      text-align: center;
+      color: var(--color-text-muted);
+      padding: 80px 20px;
+      font-style: italic;
+      font-size: 1.125rem;
+      line-height: 1.6;
+    }
+
+    .fade-in {
+      animation: fadeIn 0.8s ease-out forwards;
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    .fade-in-delayed {
+      opacity: 0;
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</Layout>

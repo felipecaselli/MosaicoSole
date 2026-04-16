@@ -45,6 +45,30 @@ export default defineType({
       type: 'text',
     }),
     defineField({
+      name: 'category',
+      title: 'Categoría',
+      description: 'Selecciona la categoría a la que pertenece esta obra',
+      type: 'string',
+      options: {
+        list: [
+          { title: 'Cuadros', value: 'cuadros' },
+          { title: 'Espejos', value: 'espejos' },
+          { title: 'Exterior', value: 'exterior' },
+          { title: 'Fanales', value: 'fanales' },
+          { title: 'Logos', value: 'logos' },
+          { title: 'Macetas', value: 'macetas' },
+          { title: 'Mandalas', value: 'mandalas' },
+          { title: 'Mesas', value: 'mesas' },
+          { title: 'Murales', value: 'murales' },
+          { title: 'Nuevos', value: 'nuevos' },
+          { title: 'Populares', value: 'populares' },
+          { title: 'Portallaves', value: 'portallaves' },
+          { title: 'Portarretratos', value: 'portarretratos' },
+        ],
+        layout: 'dropdown'
+      }
+    }),
+    defineField({
       name: 'image',
       title: 'Imagen del Producto',
       type: 'image',
