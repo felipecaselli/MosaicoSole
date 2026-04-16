@@ -23,9 +23,15 @@ export default defineType({
     }),
     defineField({
       name: 'price',
-      title: 'Precio',
+      title: 'Precio (Opcional)',
       type: 'number',
-      validation: (Rule) => Rule.required().min(0),
+    }),
+    defineField({
+      name: 'gallery',
+      title: 'Galería de imágenes extra',
+      description: 'Puedes añadir fotos adicionales de la misma obra aquí',
+      type: 'array',
+      of: [{ type: 'image', options: { hotspot: true } }]
     }),
     defineField({
       name: 'stock',

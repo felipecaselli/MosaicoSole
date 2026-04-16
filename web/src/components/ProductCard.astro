@@ -34,7 +34,6 @@ const imageUrl = product.image ? urlForImage(product.image).width(600).height(75
         disabled={isOut}
         data-id={product._id}
         data-name={product.name}
-        data-price={product.price}
       >
         {isOut ? 'Sin stock' : 'Agregar a la Colección'}
       </button>
@@ -45,7 +44,6 @@ const imageUrl = product.image ? urlForImage(product.image).width(600).height(75
     <h3 class="product-name font-serif">
       <a href={`/producto/${product._id}`}>{product.name}</a>
     </h3>
-    <p class="product-price">${product.price.toLocaleString('es-AR')}</p>
     {product.description && <p class="product-desc">{product.description}</p>}
   </div>
 </div>

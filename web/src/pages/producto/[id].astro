@@ -5,7 +5,6 @@ import CartDrawer from "../../components/CartDrawer.astro";
 import { urlForImage } from "../../utils/sanity";
 
 export async function getStaticPaths() {
-  // Ajustamos el slug de la tienda a mano para generar estáticamente todas las páginas de sus productos
   const STORE_SLUG = "mosaicosole";
   
   const query = `*[_type == "store" && slug.current == $slug][0] {
@@ -14,10 +13,10 @@ export async function getStaticPaths() {
     "products": *[_type == "product" && store._ref == ^._id] {
       _id,
       name,
-      price,
       stock,
       description,
-      image
+      image,
+      gallery
     }
   }`;
   
@@ -25,7 +24,6 @@ export async function getStaticPaths() {
   
   if (!storeData || !storeData.products) return [];
 
-  // Mapeamos los productos devueltos y generamos una ruta /producto/:id
   return storeData.products.map((product) => ({
     params: { id: product._id },
     props: { 
@@ -39,6 +37,9 @@ export async function getStaticPaths() {
 const { product, whatsappNumber, themeColor } = Astro.props;
 const isOut = product.stock <= 0;
 const imageUrl = product.image ? urlForImage(product.image).width(1200).height(1500).url() : '';
+
+// Validate that gallery is an array
+const galleryImages = Array.isArray(product.gallery) ? product.gallery : [];
 ---
 
 <Layout title={`${product.name} | MosaicoSole`} description={product.description || `Adquiere ${product.name} en MosaicoSole`} themeColor={themeColor}>
@@ -52,8 +53,9 @@ const imageUrl = product.image ? urlForImage(product.image).width(1200).height(1
   <main class="product-detail-main fade-in">
     <div class="product-container">
       
-      <!-- Imagen de la obra -->
-      <div class="product-gallery">
+      <!-- Zona de Fotos Extendida -->
+      <div class="product-visuals">
+        <!-- Imagen Principal -->
         <div class="main-image-wrapper">
           {imageUrl ? (
             <img src={imageUrl} alt={product.name} class="main-image" />
@@ -61,12 +63,27 @@ const imageUrl = product.image ? urlForImage(product.image).width(1200).height(1
             <div class="no-image">Obra sin fotografía</div>
           )}
         </div>
+
+        <!-- Grilla de Galería Opcional -->
+        {galleryImages.length > 0 && (
+          <div class="gallery-grid" style={`--total-images: ${galleryImages.length}`}>
+            {galleryImages.map((imgItem, idx) => (
+              <div class="gallery-item fade-in-delayed" style={`animation-delay: ${0.1 * idx}s`}>
+                <img 
+                  src={urlForImage(imgItem).width(800).height(800).url()} 
+                  alt={`${product.name} - Vista ${idx + 1}`} 
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <!-- Detalles e información de compra -->
       <div class="product-info">
         <h1 class="product-title font-serif">{product.name}</h1>
-        <p class="product-price">${product.price.toLocaleString('es-AR')}</p>
+        <!-- Precio oculto intencionalmente -->
         
         <div class="divider"></div>
 
@@ -80,18 +97,16 @@ const imageUrl = product.image ? urlForImage(product.image).width(1200).height(1
             disabled={isOut}
             data-id={product._id}
             data-name={product.name}
-            data-price={product.price}
           >
             {isOut ? 'Obra sin stock actualmente' : 'Agregar a mi Colección'}
           </button>
           {isOut && <p class="stock-warning">Lamentablemente ya se ha adquirido esta pieza y no hay más stock por el momento.</p>}
         </div>
 
-        <!-- Elementos adicionales de confianza artìstica -->
         <ul class="art-features">
           <li>✨ Elaborado artesanalmente</li>
           <li>🎭 Pieza exclusiva y única</li>
-          <li>📦 Envío y embalaje cuidado</li>
+          <li>💸 Precios especiales y envíos coordinados por WhatsApp</li>
         </ul>
       </div>
 
@@ -147,29 +162,62 @@ const imageUrl = product.image ? urlForImage(product.image).width(1200).height(1
       }
     }
 
-    .product-gallery {
+    .product-visuals {
       flex: 1;
       width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
     .main-image-wrapper {
       width: 100%;
-      aspect-ratio: 4 / 5;
       background: var(--color-border);
       border-radius: var(--radius);
       overflow: hidden;
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--shadow-sm);
     }
 
     .main-image {
       width: 100%;
+      height: auto;
+      object-fit: contain;
+      display: block;
+    }
+
+    .gallery-grid {
+      display: grid;
+      /* If only one extra image, let it be full width. If more, 2 columns */
+      grid-template-columns: var(--total-images) > 1 ? repeat(2, 1fr) : 1fr;
+      gap: 16px;
+    }
+
+    /* Fallback if CSS variables in grid-template-columns doesn't work perfectly everywhere: */
+    .gallery-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+    .gallery-item {
+      aspect-ratio: 1 / 1;
+      border-radius: calc(var(--radius) / 2);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      background: var(--color-bg);
+    }
+
+    .gallery-item img {
+      width: 100%;
       height: 100%;
       object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .gallery-item:hover img {
+      transform: scale(1.05);
     }
 
     .no-image {
       width: 100%;
       height: 100%;
+      min-height: 400px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -182,18 +230,15 @@ const imageUrl = product.image ? urlForImage(product.image).width(1200).height(1
       flex: 1;
       width: 100%;
       max-width: 540px;
+      position: sticky;
+      top: 40px;
     }
 
     .product-title {
       font-size: clamp(2rem, 4vw, 3rem);
       line-height: 1.1;
-      margin-bottom: 16px;
+      margin-bottom: 24px;
       letter-spacing: -0.01em;
-    }
-
-    .product-price {
-      font-size: 1.5rem;
-      color: var(--color-text-muted);
     }
 
     .divider {
@@ -262,6 +307,11 @@ const imageUrl = product.image ? urlForImage(product.image).width(1200).height(1
       animation: fadeIn 0.8s ease-out forwards;
       opacity: 0;
       transform: translateY(10px);
+    }
+
+    .fade-in-delayed {
+      opacity: 0;
+      animation: fadeIn 0.6s ease-out forwards;
     }
 
     @keyframes fadeIn {

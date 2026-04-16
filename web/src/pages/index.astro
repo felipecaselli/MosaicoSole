@@ -19,10 +19,10 @@ const query = `*[_type == "store" && slug.current == $slug][0] {
   "products": *[_type == "product" && store._ref == ^._id] {
     _id,
     name,
-    price,
     stock,
     description,
-    image
+    image,
+    gallery
   }
 }`;
 const storeData = await sanityClient.fetch(query, { slug: STORE_SLUG });
