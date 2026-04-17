@@ -35,7 +35,6 @@ export async function getStaticPaths() {
 }
 
 const { product, whatsappNumber, themeColor } = Astro.props;
-const isOut = product.stock <= 0;
 const imageUrl = product.image ? urlForImage(product.image).width(1200).height(1500).url() : '';
 
 // Validate that gallery is an array
@@ -94,13 +93,12 @@ const galleryImages = Array.isArray(product.gallery) ? product.gallery : [];
         <div class="purchase-actions">
           <button 
             class="add-to-cart-btn font-serif" 
-            disabled={isOut}
             data-id={product._id}
             data-name={product.name}
+            data-image={imageUrl}
           >
-            {isOut ? 'Obra sin stock actualmente' : 'Agregar a mi Colección'}
+            Agregar a mi Colección
           </button>
-          {isOut && <p class="stock-warning">Lamentablemente ya se ha adquirido esta pieza y no hay más stock por el momento.</p>}
         </div>
 
         <ul class="art-features">
@@ -271,24 +269,11 @@ const galleryImages = Array.isArray(product.gallery) ? product.gallery : [];
       transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
 
-    .add-to-cart-btn:not(:disabled):hover {
+    .add-to-cart-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
       background: var(--color-accent);
       color: white;
-    }
-
-    .add-to-cart-btn:disabled {
-      background: var(--color-border);
-      color: var(--color-text-muted);
-      cursor: not-allowed;
-    }
-
-    .stock-warning {
-      color: #b91c1c;
-      font-size: 0.875rem;
-      margin-top: 12px;
-      font-style: italic;
     }
 
     .art-features {
